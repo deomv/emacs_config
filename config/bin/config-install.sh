@@ -95,8 +95,8 @@ then
 ;; .emacs.el, main user startup file
 
 (load "$configdir/emacs/startup")
-(setq custom-file "~/.custom.el")
-(load custom-file)
+;;(setq custom-file "~/.custom.el")
+;;(load custom-file)
 EOF
   else
     echo "Creating .emacs.el"
@@ -107,74 +107,6 @@ EOF
   fi
 fi
 
-if ask "Install X files"
-then
-  backup .Xdefaults
-  backup .Xresources
-  backup .dbxrc
-  echo "Creating .Xdefaults"
-  ln -s "$configdir/window/Xdefaults" .Xdefaults
-  echo "Creating .Xresources"
-  ln -s "$configdir/window/Xdefaults" .Xresources
-  echo "Creating .dbxrc"
-  ln -s "$configdir/tools/dbxrc" .dbxrc
-fi
-
-if ask "Install Sawfish files"
-then
-  backup .sawfishrc
-  backup .sawfish
-  echo "Creating .sawfishrc"
-  ln -s "$configdir/window/sawfish/sawfishrc" .sawfishrc
-  echo "Creating .sawfish"
-  mkdir .sawfish
-  ln -s "$configdir/window/sawfish/lisp" .sawfish/lisp
-  ln -s "$configdir/window/sawfish/themes" .sawfish/themes
-  if ask "Create private Sawfish user file"
-  then
-    :
-  else
-    echo "Creating .sawfish/custom"
-    ln -s "$configdir/window/sawfish/custom" .sawfish/custom
-  fi
-fi
-
-if ask "Install FVWM2 files"
-then
-  backup .fvwm2rc
-  echo "Creating .fvwm2rc"
-  ln -s "$configdir/window/fvwm/fvwm2rc" .fvwm2rc
-fi
-
-
-if ask "Install Gnome files"
-then
-  if /usr/bin/test ! -d .themes
-  then
-    echo "Creating .themes"
-    mkdir .themes
-  fi
-  for theme in `cd $configdir/window/gnome/themes; echo *`
-  do
-    backup .themes/$theme
-    echo "Creating .themes/$theme"
-    ln -s "$configdir/window/gnome/themes/$theme" .themes/$theme
-  done
-fi
-
-if ask "Install RPM files"
-then
-  backup .rpmmacros
-  echo "Creating .rpmmacros"
-  ln -s "$configdir/tools/rpmmacros" .rpmmacros
-fi
-
-if ask "Install GDB files"
-then
-  backup .gdbinit
-  echo "Creating .gdbinit"
-  ln -s "$configdir/tools/gdbinit" .gdbinit
-fi
 
 if ask "Install Git files"
 then

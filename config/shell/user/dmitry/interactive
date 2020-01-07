@@ -28,6 +28,3 @@ package config
 
 # Freeze tty since zsh corrupts it on exit before prompt displayed
 ttyctl -f
-
-export PATH=/home/dim/dev/fsf/nodejs/node-v11.10.0-linux-x64/bin/:$PATH
-export PATH=/home/dim/dev/julia/julia-1.2.0/bin:$PATH
