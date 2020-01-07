@@ -17,5 +17,3 @@ export NAME="Dmitry Vladimirov"
 #then
 #  echo "Remapping AltGraph as control key"
 #  xmodmap -e "add control = SunAltGraph"
-export PATH=/home/dim/dev/fsf/nodejs/node-v11.10.0-linux-x64/bin/:$PATH
-export PATH=/home/dim/dev/julia/julia-1.2.0/bin:$PATH
