@@ -1,0 +1,27 @@
+#eval compdef -n _parse_opts cfg_compile_emacs
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the Config package
+# Compile emacs directory
+#
+
+emulate -LR zsh
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Compile emacs directory.
+
+Usage:
+cfg_compile_emacs [options] <directory>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <directory>			The directory to compile
+				# directory : directory
+EOF
+
+emacs --batch --user=$USER --eval "(load \"$opts[directory]/package/install.el\")" --eval "(install \"$opts[directory]/layout.el\")"

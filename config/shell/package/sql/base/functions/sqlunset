@@ -1,0 +1,19 @@
+# ZSH function file
+# Part of the SQL base package
+# Unset sql variables
+# Usage: sqlunset <sql-variable> ...
+#
+
+eval $_sql_intro
+
+if (( ARGC ))
+then
+  local var=""
+  for var in $argv
+  do
+    unset "_sql_parameters[$var]"
+  done
+else
+  echo "Syntax: sqlunset <sql-variable> ..."
+  return 1
+fi

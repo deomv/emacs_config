@@ -1,0 +1,12 @@
+# ZSH function file
+# Part of the SQL base package
+# Retrieve the list of function names. The names are return in an array called _sql_funcs.
+# Caching is handled automatically
+# For use only by the SQL packages
+#
+
+if [[ -z $_sql_funcs ]]
+then
+  typeset -gHUa _sql_funcs
+  _sql_funcs=($(_sql_call fetch_funcs))
+fi

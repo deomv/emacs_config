@@ -1,0 +1,28 @@
+#eval compdef -n _parse_opts append
+# ZSH function file
+# Append a component to a : separated path variable if not already present.
+# Any duplicates in the path will be removed
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Append a component to a : separated path variable if not already present.
+Any duplicates in the path will be removed
+
+Usage:
+append [options] <variable-name> <path-component>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <variable-name>		Path variable to update
+				# variable-name : ? parameter
+  <path-component>		Value to append
+				# path-component
+EOF
+
+eval $opts[variable-name]="\${(P)opts[variable-name]}:\$opts[path-component]"
+trimpath $opts[variable-name]

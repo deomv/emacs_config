@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL base package
+# Complete on the list of synonym names
+# For use only by the SQL packages
+#
+
+_sql_get_synonym_names
+_wanted synonyms expl 'database synonyms' compadd -a _sql_synonyms

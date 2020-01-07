@@ -1,0 +1,28 @@
+# ZSH configuration file
+# Executed when the SQL Oracle package is included
+# Setup for SQL Oracle package
+# Written by Martin Ebourne
+# NB. This file should only be included by the SQL base package
+#
+
+# Query for owner may be useful:
+# select owner from all_tables
+# where (owner=(select distinct table_owner from user_synonyms)
+# or owner=(select user from dual)) and rownum=1
+
+add_functions_directory package/sql/oracle/functions
+
+_sql_functions[oracle:_desc]=_oracle__desc
+_sql_functions[oracle:desc]=_oracle_desc
+_sql_functions[oracle:fetch_columns]=_oracle_fetchcolumns
+_sql_functions[oracle:fetch_funcs]=_oracle_fetchfuncs
+_sql_functions[oracle:fetch_packages]=_oracle_fetchpackages
+_sql_functions[oracle:fetch_procs]=_oracle_fetchprocs
+_sql_functions[oracle:fetch_tables]=_oracle_fetchtables
+_sql_functions[oracle:fetch_types]=_oracle_fetchtypes
+_sql_functions[oracle:fetch_synonyms]=_oracle_fetchsynonyms
+_sql_functions[oracle:init]=true
+_sql_functions[oracle:interactive]=_oracle_interactive
+_sql_functions[oracle:execute_dbi]=_oracle_execute_dbi
+_sql_functions[oracle:execute_native]=_oracle_execute
+_sql_functions[oracle:dbi_params]=_oracle_dbiparams

@@ -1,0 +1,18 @@
+# ZSH function file
+# Part of the SQL Sybase package
+# Fetch and return the list of tables
+# For use only by the SQL packages
+#
+
+local sys=""
+if [[ $_sql_parameters[access] == all ]]
+then
+  sys=", 'S'"
+fi
+
+{
+  echo "set nocount on"
+  echo "go"
+  echo "select name from sysobjects where type in ('U', 'V' $sys)"
+  echo "go"
+} | _sybase_rawsql | tail -n +3

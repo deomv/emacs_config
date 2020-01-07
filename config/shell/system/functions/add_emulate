@@ -1,0 +1,42 @@
+#eval compdef -n _parse_opts add_emulate
+# ZSH function file
+# Add emulate command to start of function. Allows use of scripts to load functions for other
+# shells unchanged, and later can edit the function to force zsh to emulate the correct shell.
+# NB. emulate is always passed -L for local changes
+#
+
+local -A opts
+local -a funcnames
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Add 'emulate' command to start of function. This allows the use of scripts to
+load functions for other shells unchanged, and later add_emulate can be used
+in order to edit the function to force zsh to emulate the correct shell. NB.
+'emulate' is always passed -L for local changes
+
+Usage:
+add_emulate [options] <shell> <function-name> ...
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+  -R, --full-reset		As for builtin emulate -R (reset more options to defaults)
+				# --full-reset | -R : constant=-R
+
+Arguments:
+  <shell>			The shell to be emulated (as for builtin emulate)
+				# shell : values=(zsh sh ksh csh)
+  <function-name> ...		List of functions to be edited
+				# funcnames += [1,*] function-name : function
+EOF
+
+local funcname=""
+for funcname in $funcnames
+do
+  if [[ -n $functions[$funcname] ]]
+  then
+    functions[$funcname]="emulate -L $opts[full-reset] $opts[shell]
+$functions[$funcname]
+"
+  fi
+done

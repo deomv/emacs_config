@@ -1,0 +1,13 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Execute the given SQL command
+# For use only by the SQL packages
+#
+
+{
+  # Handle count & maxrows options here
+
+  echo "alter session set nls_date_format='YYYY/MM/DD HH24:MI:SS';"
+  echo "set linesize 1000 pagesize 10000 tab off colsep '\xa0' feedback on;"
+  echo - "$argv[*] ;"
+} | _oracle_interactive -S

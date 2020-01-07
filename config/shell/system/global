@@ -1,0 +1,43 @@
+# ZSH configuration file
+# Executed for all shells via zshenv
+# Generic system-wide setup for ALL shells. This is executed before anything else
+# Written by Martin Ebourne
+#
+
+# Make various path like variables keep unique values only. Need to create any that aren't built
+# into the shell. Most of them are also exported
+typeset -Ugx  CDPATH
+typeset -Ugx  FIGNORE
+typeset -Ug   FPATH
+typeset -UgxT LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ld_library_path
+typeset -UgxT LM_LICENSE_FILE="$LM_LICENSE_FILE" lm_license_file
+typeset -UgxT INFOPATH="$INFOPATH" infopath
+typeset -Ugx  MAILPATH
+typeset -Ugx  MANPATH
+typeset -Ug   MODULE_PATH
+typeset -Ugx  PATH
+typeset -UgxT PERLLIB="$PERLLIB" perllib
+typeset -Ugx  WATCH
+
+# Emacs makes use of these for mode selection
+export ZCONFIGDIR ZUSERCONFIGDIR
+
+# Prompt used for execution tracing (set -x). Includes timestamp & seconds for
+# profiling. Set here because it is of use in scripts, and in profiling the shell
+# configuration
+PROMPT4=': %N:%i %D{%H:%M:%S} {$SECONDS} ; '
+
+# If ~/.zsh exists as a directory, and a ZDOTDIR has not been specified, then
+# default it to this
+if [[ -z $ZDOTDIR && -d $HOME/.zsh ]]
+then
+  export ZDOTDIR="$HOME/.zsh"
+  [[ -n $ZCONFIGDEBUG ]] && echo "ZDOTDIR set to $ZDOTDIR"
+fi
+
+# Enable functions early & for everyone
+config_if_present system/loadfuncs
+
+# Set up want/go. Use ZDOTDIR if set, else HOME. This should make the system
+# work over machines
+semaphore_base=${ZDOTDIR:-$HOME}/.tmp.semaphore.

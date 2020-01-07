@@ -1,0 +1,10 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Fetch and return the list of columns for the current table
+# For use only by the SQL packages
+#
+
+local table="$argv[1]"
+
+_oracle_rawsql "select column_name from ${_sql_parameters[access]:-user}_tab_columns" \
+               "where table_name like '$table'"

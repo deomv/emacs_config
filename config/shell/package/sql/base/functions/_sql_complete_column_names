@@ -1,0 +1,18 @@
+# ZSH function file
+# Part of the SQL base package
+# Complete on the column names from the given list of tables
+# For use only by the SQL packages
+#
+
+local table="$argv[-1]"
+
+if [[ $table != - ]]
+then
+  _sql_get_column_names $table
+  _wanted columns-$table expl "database columns for $table" \
+    compadd "${(@)argv[1,-2]}" -a _sql_columns_$table
+else
+  _sql_get_column_names
+  _wanted all-columns expl 'all database columns' \
+    compadd "${(@)argv[1,-2]}" -a _sql_columns_
+fi

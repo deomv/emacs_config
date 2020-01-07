@@ -1,0 +1,21 @@
+# ZSH function file
+# Part of the completion package
+# ZLE widget to menu complete, or move cursor down a line
+# Can only be called from ZLE as a widgit
+#
+
+# This is needed by the isearch package so it knows what the last key was
+local REALLASTWIDGET="$LASTWIDGET"
+
+# Need a normal widget to be able to call the down function, but also need a
+# completion widget as a helper to determine if we are completing or not.
+# Return value isn't propogated by zle so use var
+local _completing=""
+zle completion-is-completing
+
+if [[ $_completing == (yes|shown) ]]
+  then
+  zle menu-complete
+else
+  zle $_completion_down_widget
+fi

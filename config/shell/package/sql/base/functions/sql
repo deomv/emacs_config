@@ -1,0 +1,52 @@
+# ZSH function file
+# Part of the SQL base package
+# Execute an SQL command
+# Usage: sql <sql-command> ...
+#
+
+eval $_sql_intro
+
+if (( ARGC ))
+then
+  local format_v="" colour_v="" formatopts="" formatcmd=""
+  local maxrows_v="" truncate_v="" count_v="" interface_v=""
+
+  _sql_getparam format_v format none
+  formatopts="--style=$format_v"
+  if [[ $format_v != none ]]
+  then
+    _sql_getparam colour_v colour off
+
+    formatopts="$formatopts --colour=$colour_v --width=$COLUMNS --width-auto"
+
+    _sql_getparam maxrows_v maxrows 0
+    if (( ${maxrows_v:-0} ))
+    then
+      formatopts="$formatopts --max-rows=$maxrows_v"
+    fi
+
+    _sql_getparam truncate_v truncate 0
+    if (( ${truncate_v:-0} ))
+    then
+      formatopts="$formatopts --column-width=$truncate_v"
+    fi
+
+    _sql_getparam count_v count 1
+    if (( ${count_v:-1} ))
+    then
+      formatopts="$formatopts --count"
+    fi
+
+    formatcmd="| $_sql_formatprogram $formatopts"
+  fi
+
+  _sql_getparam interface_v interface native
+  if [[ $interface_v == dbi ]]
+  then
+    _sql_call execute_dbi $=formatopts -- "$argv[*]"
+  else
+    eval _sql_call execute_native "\$argv[*]" $formatcmd
+  fi
+else
+  _sql_call interactive
+fi

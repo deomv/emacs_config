@@ -1,0 +1,22 @@
+# ZSH configuration file
+# Executed when the clearcase package is included
+# Setup for clearcase package
+# Written by Martin Ebourne
+#
+
+if [[ -n "$CLEARCASE_ROOT" ]]
+then
+  CLEARCASE_VIEW=${CLEARCASE_ROOT#/view/}
+fi
+
+add_functions_directory package/clearcase/functions
+
+# If ZDOTDIR=HOME, default to storing clearcase cache in completion cache
+# file to reduce clutter. Else make a seperate file for it
+typeset -g clearcase_dumpfile="$_comp_dumpfile"
+if [[ ${ZDOTDIR:-$HOME} != $HOME ]]
+then
+  clearcase_dumpfile=$ZDOTDIR/.cache.cleartool
+fi
+
+alias ct=cleartool

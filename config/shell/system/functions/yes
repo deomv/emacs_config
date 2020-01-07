@@ -1,0 +1,41 @@
+#eval compdef -n _parse_opts yes
+# ZSH function file
+# Repeatedly print a string
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Repeatedly print a string
+
+Usage:
+yes [options] [<text> ...]
+
+Options:
+  -e, --escape			Interpret escape characters as for echo (default unless
+				the BSD_ECHO option is set)
+				# [echoopt] += --escape | -e : constant=-e
+  -E, --no-escape		Prevent interpretation of escape characters
+				# [echoopt] += --no-escape | -E : constant=-E
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+  -l <count>, --lines=<count>	Output only count times
+				# --lines | -l : posinteger
+  -n, --no-newline		Suppress output of automatic newline
+				# [echoopt] += --no-newline | -n : constant=-n
+  -s <seconds>, --sleep=<seconds>
+				Pause for number of seconds between each echo
+				# --sleep | -s : posinteger
+
+Arguments:
+  [<text> ...]			Optional text to print. Defaults to 'yes'
+				# [text] += [*] text
+EOF
+
+# Output as required
+while (( ${opts[lines]:-1} ))
+do
+  echo $=opts[echoopt] ${opts[text]:-yes}
+  (( opts[sleep] )) && sleep $opts[sleep]
+  (( opts[lines] && opts[lines]-- ))
+done

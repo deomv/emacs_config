@@ -1,0 +1,30 @@
+#eval compdef -n _parse_opts prepend
+# ZSH function file
+# Prepend a component to a : separated path variable. If already present then
+# it will still be prepended, but the already present component will be
+# removed. Any other duplicates in the path will be also removed
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Prepend a component to a : separated path variable. If already present then
+it will still be prepended, but the already present component will be
+removed. Any other duplicates in the path will be also removed
+
+Usage:
+prepend [options] <variable-name> <path-component>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <variable-name>		Path variable to update
+				# variable-name : ? parameter
+  <path-component>		Value to prepend
+				# path-component
+EOF
+
+eval $opts[variable-name]="\$opts[path-component]:\${(P)opts[variable-name]}"
+trimpath $opts[variable-name]

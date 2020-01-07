@@ -1,0 +1,33 @@
+# ZSH configuration file
+# Executed for interactive shells via zshrc
+# User's own setup for interactive shells. Run after all other setup has been done
+# Written by Martin Ebourne
+#
+
+# Get the normal XPG4 standards commands rather than the strange sun ones
+if [[ -d /usr/xpg4/bin ]]
+then
+  override_commands /usr/xpg4/bin /bin /usr/bin /usr/ucb /usr/ccs/bin
+  if [[ ${$(whence -w $cmd)[(w)2]} != alias && -x /usr/ucb/ps ]]
+  then
+    alias ps=/usr/ucb/ps
+  fi
+fi
+
+# Version control etc. for config system
+package config
+
+# Find out who's corrupting the tty
+#check_eof() {
+#  if [[ $(stty) == *eof\ =\ * ]]
+#  then
+#    echo "WARNING: stty reporting eof has become set"
+#  fi
+#}
+#add_to_hook precmd check_eof
+
+# Freeze tty since zsh corrupts it on exit before prompt displayed
+ttyctl -f
+
+export PATH=/home/dim/dev/fsf/nodejs/node-v11.10.0-linux-x64/bin/:$PATH
+export PATH=/home/dim/dev/julia/julia-1.2.0/bin:$PATH

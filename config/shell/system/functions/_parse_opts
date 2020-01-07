@@ -1,0 +1,21 @@
+# ZSH function file
+# Automatic completer for functions which use parse_opts
+# (C) 2001 Martin Ebourne
+#
+# See documentation with parse_opts for details on usage.
+#
+
+_parse_opts() {
+  local command="$words[1]"
+
+  # Return code is meaningless. We need to just check for stdout instead
+  local toeval="$(_call_program "$command" "$command" --zsh-completion 2>/dev/null)"
+  if [[ -n $toeval ]]
+  then
+    eval $toeval
+  else
+    _message "error executing '$command --zsh-completion'"
+  fi
+}
+
+_parse_opts "$argv[@]"

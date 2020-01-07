@@ -1,0 +1,26 @@
+# ZSH function file
+# Part of the SQL Sybase package
+# Describe the given table
+# For use only by the SQL packages
+#
+
+local name="$argv[1]"
+
+# Catch describe of system stored procs
+if [[ $name == sp_[^_]* ]]
+then
+  _sql_get_proc_names
+  if (( $+_sql_procs[$name] ))
+  then
+
+    # If it is a system proc then make _sql_parameters local and set the
+    # database in the local version to that for system procs
+    local -a temp_parameters
+    temp_parameters=("${(@kv)_sql_parameters}")
+    local -A _sql_parameters
+    _sql_parameters=("${(@)temp_parameters}")
+    _sql_parameters[database]="sybsystemprocs"
+  fi
+fi
+
+autocommit=1 count=0 sql sp_help "$name"

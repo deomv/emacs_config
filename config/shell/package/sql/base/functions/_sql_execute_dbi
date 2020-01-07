@@ -1,0 +1,42 @@
+# ZSH function file
+# Part of the SQL base package
+# Execute an SQL command via Perl DBI
+# For use only by the SQL packages
+#
+
+local kerberos=""
+if (( ${_sql_parameters[kerberos]:-0} ))
+then
+  kerberos="--kerberos=$_sql_parameters[server]"
+else
+  if [[ -z $_sql_parameters[user] ]]
+  then
+    echo "Error: SQL user variable not set" 1>&2
+    return 1
+  fi
+fi
+
+# Check the auto-commit option
+local -a opts
+_sql_getparam autocommit_v autocommit 0
+if (( ${autocommit_v:-0} ))
+then
+  opts=($opts "--auto-commit")
+fi
+
+# Take an initial guess at the driver name
+local driver="${(U)_sql_parameters[vendor][1]}${_sql_parameters[vendor][2,-1]}"
+
+# Default to empty connect
+local -a connect
+
+# Get any customised DBI parameters
+_sql_call dbi_params
+
+# Capitalise the vendor name and try it as the driver. Use server for connect string
+$_sql_dbiprogram --driver=$driver \
+                 ${connect:+--connect=${(j:;:)connect}} \
+                 $kerberos --user=$_sql_parameters[user] \
+                 ${_sql_parameters[password]:+--password=$_sql_parameters[password]} \
+                 $opts \
+                 "$argv[@]"

@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL base package
+# Complete on the list of table names
+# For use only by the SQL packages
+#
+
+_sql_get_table_names
+_wanted tables expl 'database tables' compadd -a _sql_tables

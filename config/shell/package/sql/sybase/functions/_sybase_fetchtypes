@@ -1,0 +1,12 @@
+# ZSH function file
+# Part of the SQL Sybase package
+# Fetch and return the list of types
+# For use only by the SQL packages
+#
+
+{
+  echo "set nocount on"
+  echo "go"
+  echo "select name from systypes"
+  echo "go"
+} | _sybase_rawsql | tail -n +3

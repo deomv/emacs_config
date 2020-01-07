@@ -1,0 +1,28 @@
+#!/bin/sh
+# dozsh - Execute zsh from another shell environment
+# Written by Martin Ebourne
+#
+
+MJEHOME=/home/mebourne
+
+if [ ! -d "$HOME/.zsh" ]
+then
+  mkdir $HOME/.zsh
+  mkdir $HOME/.zsh/.zsh_user
+
+  ln -s .zsh/.zshenv $HOME/.zshenv
+  ln -s $MJEHOME/config/shell/zlogout  $HOME/.zsh/.zlogout
+  ln -s $MJEHOME/config/shell/zprofile $HOME/.zsh/.zprofile
+  ln -s $MJEHOME/config/shell/zshenv   $HOME/.zsh/.zshenv
+  ln -s $MJEHOME/config/shell/zshrc    $HOME/.zsh/.zshrc
+
+  if [ ! -f "$HOME/local" ]
+  then
+    ln -s $MJEHOME/local $HOME/local
+  fi
+fi
+
+ZDOTDIR=$HOME/.zsh
+export ZDOTDIR
+
+exec $MJEHOME/local/bin/`uname -m`/zsh -l

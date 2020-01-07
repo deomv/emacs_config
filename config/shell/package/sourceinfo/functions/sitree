@@ -1,0 +1,37 @@
+#eval compdef -n _parse_opts sitree
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SourceInfo package
+# Display class hierarchy trees
+#
+
+local -A opts
+local -a dirs
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Display a type and its inheritence hierarchy using the sourceinfo database.
+
+Usage:
+sitree [options] <type-name>
+
+Options:
+  -d <dir>, --directory=<dir>	Prefer files within directory if duplicates found
+				(partial name ok, searched in order given)
+				# dirs += [*] --directory | -d : ? directory
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <type-name>			The type to retrieve the information for
+				# type : text
+EOF
+
+[[ -z $sourceinfo_typesdb ]] && { echo "sourceinfo_typesdb not set" ; return 1 }
+
+# If no -d options then add all the default ones instead
+if (( !$#dirs ))
+then
+  dirs=($sourceinfo_preferred_dirs)
+fi
+
+typeInfo.pl -s --directory=$^dirs $sourceinfo_typesdb $opts[type]

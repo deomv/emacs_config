@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL base package
+# Complete on the list of function names
+# For use only by the SQL packages
+#
+
+_sql_get_func_names
+_wanted db-functions expl 'database functions' compadd -a _sql_funcs

@@ -1,0 +1,61 @@
+# ZSH function file
+# Part of the prompt package
+# Hook for preexec function
+# Usage: _prompt_precmd
+#
+
+local command="$1"
+
+# Calculate the number of rows used by the command line (including left prompt).
+# Note that the combined line is split into logical rows according to any
+# incorporated newlines, and these are summed up individually. lastrows is the
+# number of physical rows used by the last logical row
+local lastrow=""
+integer lastrows=0 rows=0
+for lastrow in "${(f)${(%%)${PROMPT//[%]\{[^%]#%\}/}}}${(f)command}"
+do
+  (( lastrows = 1 + $#lastrow / COLUMNS ))
+  (( rows += lastrows ))
+done
+
+# Modify command to put a clear to end of line before each newline incorporated.
+# This is in case there were any secondary prompts midway, helps remove the
+# clutter, though not guaranteed to be perfect
+command=${command//$'\n'/$termcap[ce]$'\n'}
+
+
+## Redraw the command line
+
+# Move up the required number of rows to get to the start of the command line
+echo -n - "${${(l:rows:)}// /$termcap[up]}"
+
+# First the left prompt
+echotc cr
+print -nP - $PROMPT
+
+# Then the command in bold. Don't let echo parse any escape sequences in command
+echo -n - "$colour_start$colours[bold]$colour_end"
+echo -nE - "$command"
+echo -n - "$colour_start$colours[normal]$colour_end"
+
+# Then the padding to right justify the right prompt. Only use last logical row of
+# command for this calculation. Handle case where prompt needs to be shifted onto
+# the next line
+integer gap=$(( COLUMNS * lastrows - $#lastrow - ${#${(%%)${prompt_right//[%]\{[^%]#%\}/}}} ))
+if (( gap > 0 ))
+then
+  echo -n - "${(l:gap:)}"
+else
+  echotc ce
+  echo
+  echo -n - "${(l:COLUMNS - ${#${(%%)${prompt_right//[%]\{[^%]#%\}/}}}:)}"
+fi
+
+# Then the right prompt
+print -nP - $prompt_right
+
+# May need a newline depending on terminal
+if (( _prompt_wrapmode ))
+then
+  echo
+fi

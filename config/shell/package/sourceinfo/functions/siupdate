@@ -1,0 +1,57 @@
+#eval compdef -n _parse_opts siupdate
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SourceInfo package
+# Update the SourceInfo databases
+#
+
+parse_opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Update the SourceInfo databases.
+
+Usage:
+siupdate [options]
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+EOF
+
+if [[ -z $sourceinfo_sourcecode_dirs ]]
+then
+  echo "sourceinfo_sourcecode_dirs not set" 1>&2
+  return 1
+fi
+
+local dir="" new=".new.$$"
+
+# Create the files database
+echo "Creating $sourceinfo_filesdb..."
+for dir in $sourceinfo_sourcecode_dirs
+do
+  find $dir -type f \! \( -name '.*' -o -name '*~*' -o -name '*#' \
+			  -o -name '*.[ado]' -o -name '*.so' \
+			  -o -name '*.elc' -o -name '*.zwc' \
+			  -o -name '*[mM]akefile' -o -name '*.mk' -o -name '*.mak' \
+			  -o -name '*.bak' -o -name '*.orig' -o -name '*.old' \
+			  -o -name '*.keep' -o -name '*.keep.*' \
+			  -o -name 'core' \
+		       \) \
+		    -print \
+	    -o \( -name '.*' -o -name 'lost+found' -o -name 'RCS' -o -name 'CVS' \
+                  -o -name 'sol2.d' -o -name 'SunWS_cache' \
+	       \) \
+	       -prune
+done |
+  gzip - > $sourceinfo_filesdb$new &&
+  mv -f $sourceinfo_filesdb$new $sourceinfo_filesdb
+
+# Create the types database
+echo "Creating $sourceinfo_typesdb..."
+for dir in $sourceinfo_sourcecode_dirs
+do
+  find $dir -type f \( -name '*.hpp' -o -name '*.hxx' -o -name '*.h' -o -name '*.H' \) -print \
+	    -o -name lost+found -prune | xargs -n50 typeInfoGenerate.pl
+done |
+  gzip - > $sourceinfo_typesdb$new &&
+  mv -f $sourceinfo_typesdb$new $sourceinfo_typesdb

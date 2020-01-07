@@ -1,0 +1,53 @@
+# ZSH function file
+# Part of the SQL base package
+# Set sql variables
+# Usage: sqlset <sql-variable>=<value> ...
+#
+
+eval $_sql_intro
+
+if (( ARGC ))
+then
+
+  sqlrehash
+
+  local assign=""
+  for assign in $argv
+  do
+    if [[ $assign == [^=]*=* ]]
+    then
+      _sql_parameters[${assign%%\=*}]="${assign#*=}"
+    elif [[ $assign != *=* && $+_sql_parameters[$assign] -ne 0 ]]
+    then
+      echo - "$assign=$_sql_parameters[$assign]"
+    else
+      echo "Syntax: sqlset [<sql-variable>=<value> | <sql-variable> ] ..." 1>&2
+      return 1
+    fi
+  done
+  
+  local vendor="$_sql_parameters[vendor]"
+  local fn="$_sql_functions[$vendor:init]"
+  if [[ -n $vendor && -z $fn ]]
+  then
+    if package sql/$vendor 2>/dev/null
+    then
+      fn=$_sql_functions[$vendor:init]
+    else
+      echo "Invalid database vendor '$vendor'" 1>&2
+      unset $_sql_parameters[vendor]
+      return 1
+    fi
+  fi
+  
+  $fn
+
+else
+
+  local var=""
+  for var in ${(k)_sql_parameters}
+  do
+    echo - "$var=$_sql_parameters[$var]"
+  done
+
+fi

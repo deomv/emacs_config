@@ -1,0 +1,70 @@
+# ZSH configuration file
+# Executed for interactive shells via zshrc
+# Generic system-wide setup for interactive use
+# Written by Martin Ebourne
+#
+
+# Initial config files
+config_if_present system/options
+
+autoload -U zargs zcalc zed zmv
+
+# Always include this package. If colour is disabled it will take note
+package colour
+
+# Pager to use for stand-alone redirections - ie. < file
+if [[ $(whence -p less) == /* ]]
+then
+  READNULLCMD=less
+else
+  READNULLCMD=more
+fi
+
+# Treat these characters as part of a word
+WORDCHARS='*?_-.[]~#'
+
+# Ignore these filename extensions in completion
+fignore=(. .. \~ % \# .o .elc .la .lo .pyc .zwc)
+
+# Combine PERL5LIB into PERLLIB
+perllib=($perllib ${(s/:/)PERL5LIB})
+unset PERL5LIB
+
+# Automatically report time for commands taking longer than a minute
+REPORTTIME=60
+
+# Set up history saving
+HISTSIZE=10000
+SAVEHIST=8000
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+if [[ ${ZDOTDIR:-$HOME} != $HOME ]]
+then
+  HISTFILE=$ZDOTDIR/.history
+fi
+backup_history
+
+# Update XTerm title bar with useful info after each command
+package xterm
+
+if [[ -n $ZCONFIG_DEMO ]]
+then
+  # No blank prompts so terminal output can be reused
+  PROMPT='%# '
+  unset RPROMPT
+elif (( COLOUR ))
+then
+  # Really fancy multi-line coloured prompt. Will work in non-colour xterm, but too
+  # obtrusive in that case, so not enabled
+  package prompt
+else
+  # Simple prompts
+  PROMPT='$USERNAME@%m:%3c%# '
+  RPROMPT='%T'
+fi
+
+# Final config files
+config_if_present system/aliases
+config_if_present system/keys
+package isearch
+package completion
+package dirstack

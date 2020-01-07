@@ -1,0 +1,37 @@
+#eval compdef -n _parse_opts sigrep
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SourceInfo package
+# Search contents of files from the source info file list
+#
+
+local -A opts
+local -a grepopts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Search contents of files from the source info file list.
+
+Usage:
+sigrep [options] <grep-options> ... <filename-regexp>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <grep-options>		Search options to grep
+				# grepopts += [1,*] grep-options : grep-opts
+  <filename-regexp>		Regexp to match the filenames to search
+				# filename-regexp
+
+#type grep-opts string "" "_grep" * complete.restrict=normal
+EOF
+
+[[ -z $sourceinfo_filesdb ]] && { echo "sourceinfo_filesdb not set" 2>&1 ; return 1 }
+
+# Get the list of files, one per line
+# Escape any dangerous characters
+# Use xargs to grep for results. Ensure >1 file to grep so it lists filename
+sifile $opts[filename-regexp] |
+  sed 's/\([ "'\'']\)/\\\1/g' |
+  xargs grep -n "$grepopts[@]" /dev/null
