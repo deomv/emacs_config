@@ -1,0 +1,1078 @@
+#compdef sql
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SQL base package
+# Completion code for sql command
+# Usage: These functions are used by the completion code
+#
+
+#_sql_trace=1
+
+
+## Parser helper functions
+
+# Completely tokenise the command line
+# Input variables:
+#   inputline, inputindex
+# Output variables:
+#   tokens, tokenids, cursorindex, cursorprefix, cursorsuffix
+_sql_tokenise () {
+  integer charindex=1
+
+  local -a keywords
+  keywords=( by create delete distinct drop exec from group having
+             insert into order select set table truncate union
+	     update values
+	   )
+
+  local whitespace="" token="" tokenid="" prefix=""
+  integer newindex=0 tokenindex=0 setsuffix=0
+  while [[ $inputline != [[:space:]]# ]]
+  do
+    whitespace="${(M)inputline##[[:space:]]#}"
+    inputline="${inputline#$whitespace}"
+
+    if [[ -n $whitespace ]]
+    then
+      prefix=""
+      setsuffix=0
+    fi
+
+    case $inputline in
+      \\\'*)
+        tokenid=string
+	token=""
+	local templine="$inputline"
+
+	# Lump together adjoining quote sections (SQL uses '' to escape ' in strings)
+	while [[ $templine == \\\'* ]]
+	do
+	  if [[ $templine == \\\'*\\\'* ]]
+	  then
+	    token="$token${(M)templine#\\\'*\\\'}"
+	    templine="${inputline#$token}"
+	  else
+	    # Unterminated quote - grab all till end of line
+	    token=$inputline
+	    templine=""
+	  fi
+	done
+	;;
+      \\\(*)
+        tokenid=open-paren
+	token="\\("
+	;;
+      \\\)*)
+        tokenid=close-paren
+	token="\\)"
+	;;
+      .*)
+        tokenid=period
+	token="."
+	;;
+      [[:digit:]]*)
+        tokenid=number
+	token=${(M)inputline##[[:digit:]]#}
+	;;
+      [[:alpha:]_]*)
+	token=${(M)inputline##[[:alnum:]_]#}
+	if (( keywords[(r)$token] ))
+	then
+	  tokenid=keyword
+	else
+	  tokenid=word
+	fi
+	;;
+      [[:punct:]]*)
+        tokenid=punctuation
+	token=${(M)inputline#[[:punct:]]}
+	;;
+      *)
+        echo "_sql_tokenise: Unrecognised text in sql code: '$inputline'" 1>&2
+	return 1
+	;;
+    esac
+    inputline="${inputline#$token}"
+
+    if (( setsuffix ))
+    then
+      cursorsuffix="$cursorsuffix$token"
+    fi
+
+    (( tokenindex++ ))
+
+    (( newindex = charindex + $#whitespace + $#token ))
+    if (( !cursorindex )) &&
+       [[ $inputindex -lt $newindex ||
+	  $inputindex -eq $newindex && $tokenid == ((key|)word|period) ]]
+    then
+      (( cursorindex = tokenindex ))
+      cursorprefix=$prefix
+      setsuffix=1
+
+      if [[ $tokenid == period ]]
+      then
+        cursorprefix="$cursorprefix."
+      fi
+
+      if [[ $inputindex -eq $charindex && $tokenid != (key|)word ]]
+      then
+	cursorsuffix="$token"
+      fi
+    fi
+    (( charindex = newindex ))
+
+    prefix="$prefix$token"
+
+    tokenids[tokenindex]=$tokenid
+    tokens[tokenindex]=$token
+
+    (( _sql_trace )) && echo "$tokenindex:\t$tokenid\t>$token<"
+  done
+
+  (( tokenindex++ ))
+  tokenids[tokenindex]=eof
+  tokens[tokenindex]=-eof
+  (( _sql_trace )) && echo "$tokenindex:\teof\t>-eof<"
+
+  if (( !cursorindex ))
+  then
+    (( cursorindex = tokenindex ))
+    cursorprefix=$prefix
+  fi
+}
+
+
+# Get the next token, and record the current state
+# Inputs:
+#   currentstate - The next state to record
+# Input variables:
+#   nextstate, tokens, tokenids, nestedindex
+# Output variables:
+#   token, tokenid, nextstate, states, statenestindices
+_sql_get_token () {
+  local currentstate="$1"
+
+  (( _sql_trace )) &&
+    echo "state: $currentstate nested: $nested nestedindex=$nestedindex parenlevel=$parenlevel"
+
+  if [[ -z $currentstate ]]
+  then
+    echo "_sql_get_token: Missing state in sql code. Next token: '$token'" 1>&2
+  fi
+
+  states[nextstate]=$currentstate
+  statenestindices[nextstate]=$nestedindex
+
+  tokenid=$tokenids[nextstate]
+  token=$tokens[nextstate]
+
+  (( nextstate++ ))
+
+  (( _sql_trace )) && echo "token $tokenid >$token<"
+}
+
+
+## Nested context handling functions
+
+# Save the state for the current nested context
+_sql_save_nest () {
+  nestedlist[nestedindex]="
+parentindex=$parentindex
+nestedindex=$nestedindex
+nested=$nested
+parenlevel=$parenlevel
+tables=(${(kv)tables})
+"
+}
+
+# Increase nesting level
+_sql_nest () {
+  _sql_save_nest
+  (( parentindex = nestedindex ))
+  (( nestedindex = $#nestedlist + 1 ))
+  (( nested++ ))
+  parenlevel=0
+  tables=()
+}
+
+# Remove a nesting level
+_sql_unnest () {
+  _sql_save_nest
+  eval $nestedlist[parentindex]
+}
+
+# Create a new nesting context at the same level
+_sql_new_nest () {
+  _sql_unnest
+  _sql_nest
+}
+
+
+## Generic productions
+
+_sql_gpn_column_name () {
+  local stateprefix="$1" followingstate="$2" endexpr="$3"
+
+  if [[ $tokenids[nextstate] == period ]]
+  then
+    local tablealias="$token"
+
+    _sql_get_token $stateprefix.column.for.$tablealias
+    _sql_get_token $stateprefix.column.for.$tablealias
+
+    if [[ $tokenid == (word|keyword) && $token != $~endexpr ]]
+    then
+      _sql_get_token $followingstate
+    fi
+  else
+    _sql_get_token $followingstate
+  fi
+}
+
+_sql_gpn_where () {
+  local stateprefix="$1" endexpr="$2"
+
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      $~endexpr)
+	return
+	;;
+      \\\()
+        (( parenlevel++ ))
+        _sql_get_token $stateprefix
+	if [[ $parenlevel -eq 1 && $token == select ]]
+	then
+	  _sql_pn_sub_select
+	fi
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	elif (( $nested ))
+	then
+	  return
+	fi
+	_sql_get_token $stateprefix
+	;;
+      *)
+        _sql_gpn_column_name $stateprefix $stateprefix $endexpr
+	;;
+    esac
+  done
+}
+
+
+## Specific productions
+
+_sql_pn_start () {
+  _sql_get_token start
+
+  case $token in
+    -eof)
+      return
+      ;;
+    select)
+      _sql_get_token select.distinct
+      _sql_pn_select
+      ;;
+    delete)
+      _sql_get_token delete
+      _sql_pn_delete
+      ;;
+    insert)
+      _sql_get_token insert
+      _sql_pn_insert
+      ;;
+    update)
+      _sql_get_token update
+      _sql_pn_update
+      ;;
+    truncate)
+      _sql_get_token truncate
+      _sql_pn_truncate
+      ;;
+    exec)
+      _sql_get_token exec
+      _sql_pn_exec
+      ;;
+    create)
+      ;;
+    drop)
+      ;;
+  esac
+}
+
+_sql_pn_sub_select () {
+  _sql_nest
+  if [[ $token == select ]]
+  then
+    _sql_get_token select.distinct
+  fi
+  _sql_pn_select
+  _sql_unnest
+}
+
+_sql_pn_select () {
+  _sql_pn_select_statement
+
+  while [[ $token == union ]]
+  do
+    _sql_new_nest
+    _sql_get_token select.union
+
+    if [[ $token == select ]]
+    then
+      _sql_get_token select.distinct
+      _sql_pn_select_statement
+    fi
+  done
+}
+
+_sql_pn_select_statement () {
+  _sql_pn_select_columns
+
+  if [[ $token == from ]]
+  then
+    _sql_get_token select.from.table
+    _sql_pn_select_from
+  fi
+
+  if [[ $token == where ]]
+  then
+    _sql_get_token select.where.expression
+    _sql_gpn_where select.where 'order|group|having|union'
+  fi
+
+  if [[ $token == order ]]
+  then
+    _sql_get_token select.order
+    _sql_pn_select_order
+  fi
+
+  if [[ $token == group ]]
+  then
+    _sql_get_token select.group
+    _sql_pn_select_group
+  fi
+
+  if [[ $token == having ]]
+  then
+    _sql_get_token select.having.expression
+    _sql_gpn_where select.having 'union'
+  fi
+}
+
+_sql_pn_select_columns () {
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      from|where|order|group|having|union)
+	return
+	;;
+      distinct)
+	_sql_get_token select.column
+	;;
+      \\\()
+        (( parenlevel++ ))
+        _sql_get_token select
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	elif (( $nested ))
+	then
+	  return
+	fi
+	_sql_get_token select
+	;;
+      ,)
+        _sql_get_token select.column
+	;;
+      *)
+        _sql_gpn_column_name select select 'from|where|order|group|having|union'
+	;;
+    esac
+  done
+}
+
+_sql_pn_select_from () {
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      where|order|group|having|union)
+	return
+	;;
+      \\\()
+        (( parenlevel++ ))
+        _sql_get_token select.from
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	elif (( $nested ))
+	then
+	  return
+	fi
+	_sql_get_token select.from
+	;;
+      ,)
+	_sql_get_token select.from.table
+	;;
+      *)
+        _sql_pn_select_from_table
+	;;
+    esac
+  done
+}
+
+_sql_pn_select_from_table () {
+  local table="$token"
+
+  _sql_get_token select.from.alias
+
+  case $token in
+    -eof)
+      tables[$table]=$table
+      return
+      ;;
+    where|order|group|having|\\\)|,)
+      tables[$table]=$table
+      ;;
+    *)
+      tables[$token]=$table
+      _sql_get_token select.from
+      ;;
+  esac
+}
+
+_sql_pn_select_order () {
+  if [[ $token == by ]]
+  then
+    _sql_get_token select.order.by.column
+  fi
+
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      group|having|union)
+	return
+	;;
+      \\\()
+        (( parenlevel++ ))
+        _sql_get_token select.from
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	elif (( $nested ))
+	then
+	  return
+	fi
+	_sql_get_token select.from
+	;;
+      ,)
+        _sql_get_token select.order.by.column
+	;;
+      *)
+        _sql_gpn_column_name select.order.by select.order.by 'group|having|union'
+	;;
+    esac
+  done
+}
+
+_sql_pn_select_group () {
+  if [[ $token == by ]]
+  then
+    _sql_get_token select.group.by.column
+  fi
+
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      having|union)
+	return
+	;;
+      \\\()
+        (( parenlevel++ ))
+        _sql_get_token select.from
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	elif (( $nested ))
+	then
+	  return
+	fi
+	_sql_get_token select.from
+	;;
+      ,)
+        _sql_get_token select.group.by.column
+	;;
+      *)
+        _sql_gpn_column_name select.group.by select.group.by 'having|union'
+	;;
+    esac
+  done
+}
+
+_sql_pn_delete () {
+  _sql_pn_delete_from
+
+  if [[ $token == where ]]
+  then
+    _sql_get_token delete.where
+    _sql_gpn_where delete.where ''
+  fi
+}
+
+_sql_pn_delete_from () {
+  if [[ $token == from ]]
+  then
+    _sql_get_token delete.from
+  fi
+
+  local table="$token"
+
+  # Table name
+  case $token in
+    -eof)
+      return
+      ;;
+    where)
+      return
+      ;;
+    *)
+      _sql_get_token delete.table
+      ;;
+  esac
+
+  # Table alias
+  case $token in
+    -eof)
+      tables[$table]=$table
+      return
+      ;;
+    where)
+      tables[$table]=$table
+      return
+      ;;
+    *)
+      tables[$token]=$table
+      _sql_get_token delete.table
+      ;;
+  esac
+}
+
+_sql_pn_truncate () {
+  if [[ $token == table ]]
+  then
+    _sql_get_token truncate.table
+  fi
+}
+
+_sql_pn_insert () {
+  _sql_pn_insert_into
+
+  if [[ $token == "\\(" ]]
+  then
+    _sql_get_token insert.columns.column
+    _sql_pn_insert_columns
+  fi
+
+  if [[ $token == values ]]
+  then
+    _sql_get_token insert.values
+    _sql_pn_insert_values
+  fi
+}
+
+_sql_pn_insert_into () {
+  if [[ $token == into ]]
+  then
+    _sql_get_token insert.into
+  fi
+
+  local table="$token"
+
+  # Table name
+  case $token in
+    -eof)
+      return
+      ;;
+    values|\\\()
+      return
+      ;;
+    *)
+      _sql_get_token insert.table
+      ;;
+  esac
+
+  # Table alias
+  case $token in
+    -eof)
+      tables[$table]=$table
+      return
+      ;;
+    values|\\\()
+      tables[$table]=$table
+      return
+      ;;
+    *)
+      tables[$token]=$table
+      _sql_get_token insert.table
+      ;;
+  esac
+}
+
+_sql_pn_insert_columns () {
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      values)
+	return
+	;;
+      \\\))
+	_sql_get_token insert.columns.close
+	return
+	;;
+      ,)
+	_sql_get_token insert.columns.column
+	;;
+      *)
+        _sql_gpn_column_name insert.columns insert.columns 'values'
+	;;
+    esac
+  done
+}
+
+_sql_pn_insert_values () {
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      *)
+	_sql_get_token insert.values.expression
+	;;
+    esac
+  done
+}
+
+_sql_pn_update () {
+  _sql_pn_update_table
+
+  if [[ $token == set ]]
+  then
+    _sql_get_token update.set.column
+    _sql_pn_update_set
+  fi
+
+  if [[ $token == where ]]
+  then
+    _sql_get_token update.where
+    _sql_gpn_where update.where ''
+  fi
+}
+
+_sql_pn_update_table () {
+  local table="$token"
+
+  # Table name
+  case $token in
+    -eof)
+      return
+      ;;
+    set|where)
+      return
+      ;;
+    *)
+      _sql_get_token update.table
+      ;;
+  esac
+
+  # Table alias
+  case $token in
+    -eof)
+      tables[$table]=$table
+      return
+      ;;
+    set|where)
+      tables[$table]=$table
+      return
+      ;;
+    *)
+      tables[$token]=$table
+      _sql_get_token update.table
+      ;;
+  esac
+}
+
+_sql_pn_update_set () {
+  while true
+  do
+    case $token in
+      -eof)
+	return
+	;;
+      where)
+	return
+	;;
+      =)
+	_sql_get_token update.set.expression.start
+        ;;
+      \\\()
+        (( parenlevel++ ))
+	if [[ $parenlevel -eq 1 && $tokens[nextstate-2] == \= ]]
+	then
+	  _sql_get_token update.set.subselect
+
+	  if [[ $token == select ]]
+	  then
+	    _sql_pn_sub_select
+	  fi
+	else
+	  _sql_get_token update.set.expression
+	fi
+	;;
+      \\\))
+        if (( parenlevel > 0 ))
+	then
+	  (( parenlevel-- ))
+	fi
+	_sql_get_token update.set
+	;;
+      ,)
+	_sql_get_token update.set.column
+        ;;
+      *)
+        _sql_gpn_column_name update.set update.set 'where'
+	;;
+    esac
+  done
+}
+
+_sql_pn_exec () {
+}
+
+
+## Completion functions
+
+# Generate the completion for a column, maybe using table aliases
+_sql_generate_column_completion () {
+  local tablealias="$1"
+
+  local aliassuffix="-S."
+  if [[ -n $cursorsuffix ]]
+  then
+    suffix=""
+    aliassuffix=""
+  fi
+
+  if [[ -n $tablealias ]]
+  then
+    local table="$tables[$tablealias]"
+    if [[ -z $table ]]
+    then
+      table=$tablealias
+    fi
+
+    alts=($alts "columns-$table:database columns for $table:_sql_complete_column_names $suffix $table")
+  else
+    alts=($alts "table-aliases:table aliases:compadd $aliassuffix ${(k)tables}")
+    if (( $#tables ))
+    then
+      local table=""
+      for table in $tables
+      do
+	alts=($alts "columns-$tables:database columns for $table:_sql_complete_column_names $suffix $table")
+      done
+    else
+      alts=($alts "all-columns:all database columns:_sql_complete_column_names $suffix -")
+    fi
+  fi
+}
+
+# Create the completions based on the parsed state information
+_sql_generate_completions () {
+  local -a alts
+  alts=()
+
+  # Temporary bodge to work around bugs in all-matches
+  # expansion when -r includes space
+  local suffix=""
+  if [[ $curcontext == *:match:* ]]
+    then
+    suffix="-S ',' -r ',\t\n\-'"
+  else
+    suffix="-S ', ' -r ', \t\n\-'"
+  fi
+
+  if (( ! cursorindex ))
+  then
+    echo "_sql_generate_completions: State not set in sql code" 1>&2
+    return 1
+  fi
+
+  # Build up the list of tables including inherited. Then reset all state back
+  # to our level
+  eval $nestedlist[statenestindices[cursorindex]]
+  typeset -A alltables
+  while (( parentindex ))
+  do
+    eval $nestedlist[parentindex]
+    alltables=(${(kv)tables} ${(kv)alltables})
+  done
+  eval $nestedlist[statenestindices[cursorindex]]
+  tables=(${(kv)alltables} ${(kv)tables})
+
+  case $states[cursorindex] in
+    *.(having|where).column.for.*)
+      suffix=""
+      _sql_generate_column_completion ${states[cursorindex]##*.}
+      ;;
+    update.set.column.for.*)
+      suffix="-S '=' -r ' =\t\n\-'"
+      _sql_generate_column_completion ${states[cursorindex]##*.}
+      ;;
+    *.column.for.*)
+      _sql_generate_column_completion ${states[cursorindex]##*.}
+      ;;
+    delete)
+      alts=($alts 'sql:SQL reserved words:(from)')
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    delete.from)
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    delete.table)
+      alts=($alts 'sql:SQL reserved words:(where)')
+      ;;
+    delete.where)
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    exec)
+      alts=($alts 'stored-procs:database stored procedures:_sql_complete_proc_names')
+      ;;
+    insert)
+      alts=($alts 'sql:SQL reserved words:(into)')
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    insert.columns)
+      alts=($alts 'sql:SQL reserved words:())')
+      ;;
+    insert.columns.close)
+      alts=($alts 'sql:SQL reserved words:(values)')
+      ;;
+    insert.columns.column)
+      _sql_generate_column_completion
+      ;;
+    insert.into)
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    insert.table)
+      alts=($alts 'sql:SQL reserved words:(( values)')
+      ;;
+    insert.values)
+      alts=($alts 'sql:SQL reserved words:(()')
+      ;;
+    insert.values.expression)
+      ;;
+    select)
+      alts=($alts 'sql:SQL reserved words:(from)')
+      ;;
+    select.column)
+      _sql_generate_column_completion
+      ;;
+    select.distinct)
+      alts=($alts 'sql:SQL reserved words:(distinct)')
+      _sql_generate_column_completion
+      ;;
+    select.from)
+      alts=($alts 'sql:SQL reserved words:(where order group having union)')
+      ;;
+    select.from.alias)
+      alts=($alts 'sql:SQL reserved words:(where order group having union)')
+      ;;
+    select.from.table)
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    select.group)
+      alts=($alts 'sql:SQL reserved words:(by)')
+      ;;
+    select.group.by)
+      alts=($alts 'sql:SQL reserved words:(having union)')
+      ;;
+    select.group.by.column)
+      _sql_generate_column_completion
+      ;;
+    select.having)
+      alts=($alts 'sql:SQL reserved words:(union)')
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    select.having.expression)
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    select.order)
+      alts=($alts 'sql:SQL reserved words:(by)')
+      ;;
+    select.order.by)
+      alts=($alts 'sql:SQL reserved words:(group having union)')
+      ;;
+    select.order.by.column)
+      _sql_generate_column_completion
+      ;;
+    select.union)
+      alts=($alts 'sql:SQL reserved words:(select)')
+      ;;
+    select.where)
+      alts=($alts 'sql:SQL reserved words:(order group having union)')
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    select.where.expression)
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    start)
+      alts=($alts 'sql:SQL reserved words:(select delete insert update truncate exec create drop)')
+      alts=($alts 'stored-procs:database stored procedures:_sql_complete_proc_names')
+      ;;
+    truncate)
+      alts=($alts 'sql:SQL reserved words:(table)')
+      ;;
+    truncate.table)
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    update)
+      alts=($alts 'tables:database tables:_sql_complete_table_names')
+      ;;
+    update.set)
+      alts=($alts 'sql:SQL reserved words:(where)')
+      suffix="-S '=' -r ' =\t\n\-'"
+      _sql_generate_column_completion
+      ;;
+    update.set.column)
+      suffix="-S '=' -r ' =\t\n\-'"
+      _sql_generate_column_completion
+      ;;
+    update.set.expression)
+      ;;
+    update.set.expression.start)
+      alts=($alts 'sql:SQL reserved words:(()')
+      ;;
+    update.set.subselect)
+      alts=($alts 'sql:SQL reserved words:(select)')
+      ;;
+    update.table)
+      alts=($alts 'sql:SQL reserved words:(set)')
+      ;;
+    update.where)
+      suffix=""
+      _sql_generate_column_completion
+      ;;
+    *)
+      echo "_sql_generate_completions: Unrecognised state '$states[cursorindex]' in sql code" 1>&2
+      return 1
+      ;;
+  esac
+
+  compset -p $#cursorprefix
+  compset -s $#cursorsuffix
+  if [[ -n $cursorsuffix ]]
+  then
+    compstate[to_end]=""
+  fi
+  #compset -P '*[^[:alnum:]_]'
+  #compset -S '[^[:alnum:]_]*'
+
+  _alternative $alts
+}
+
+
+## Entry point
+
+# This is the sql completion function, and is the entry point for all this code
+_sql () {
+
+  (( _sql_trace )) && echo
+
+  local prefix="$PREFIX" current="$words[CURRENT]"
+  integer prefixI=1 currentI=1
+  while (( prefixI <= $#prefix ))
+  do
+    if (( currentI <= $#current )) && [[ $prefix[prefixI] == $current[currentI] ]]
+    then
+      (( prefixI++, currentI++ ))
+    elif [[ $prefix[prefixI] == \\ ]]
+    then
+      prefix[prefixI,-1]=$prefix[prefixI+1,-1]
+    elif (( currentI <= $#current ))
+    then
+      prefix[prefixI,prefixI-1]=$current[currentI]
+      (( prefixI++, currentI++ ))
+    else
+      (( prefixI++ ))
+    fi
+  done
+
+  local inputline="$words[2,-1]"
+  integer inputindex=0
+  (( inputindex = ${#${words[2,CURRENT]}} - $#current + $#prefix + 1 ))
+
+  local -a tokens tokenids
+  local cursorprefix="" cursorsuffix=""
+  integer cursorindex=0
+  _sql_tokenise
+
+  local -A tables
+  local -a states nestedlist statenestindices
+  local tokenid="" token=""
+  integer nextstate=1
+  integer nested=0 nestedindex=1 parentindex=0 parenlevel=0
+  _sql_nest
+  _sql_pn_start
+  _sql_unnest
+
+  if (( _sql_trace ))
+  then
+    echo "tables=${(kv)tables}"
+    echo "states=$states"
+    echo "statenestindices=$statenestindices"
+    echo "cursorindex=$cursorindex ($states[cursorindex]) $statenestindices[cursorindex]"
+    echo "nestedlist=$nestedlist"
+    echo "cursorprefix=>$cursorprefix< cursorsuffix=>$cursorsuffix<"
+  fi
+
+  _sql_generate_completions
+}
+
+_sql "$@"

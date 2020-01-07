@@ -1,0 +1,10 @@
+# ZSH function file
+# Part of the SQL base package
+# Delete all cached information to force it to be refetched on next use
+# Usage: sqlrehash
+#
+
+eval $_sql_intro
+
+unset _sql_tables ${(M)$(set +):#_sql_columns*}
+unset _sql_funcs _sql_packages _sql_procs _sql_synonyms _sql_types

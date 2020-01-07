@@ -1,0 +1,11 @@
+#compdef emacsclient
+# ZSH function file
+# Completion for emacsclient
+#
+
+_arguments -S \
+'--help[Give help on usage]' \
+'--version[List version information]' \
+'(--no-wait)-n[Do not wait for Emacs to return]' \
+'(-n)--no-wait[Do not wait for Emacs to return]' \
+'*:file:_files'

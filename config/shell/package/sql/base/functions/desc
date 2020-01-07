@@ -1,0 +1,15 @@
+# ZSH function file
+# Part of the SQL base package
+# Describe the given table
+# Usage: desc <table-name>
+#
+
+eval $_sql_intro
+
+if (( ARGC != 1 ))
+then
+  echo "Syntax: desc <object-name>" 1>&2
+  return 1
+fi
+
+_sql_call desc "$argv[1]"

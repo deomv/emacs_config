@@ -1,0 +1,89 @@
+#eval compdef -n _parse_opts package
+# ZSH function file
+# Load a package which is part of the configuration system
+#
+
+local basedir="$ZCONFIGDIR/package"
+
+local -a packages
+packages=($basedir/**/setup(N.))
+packages=(${${packages#$basedir/}%/setup})
+
+local -A opts
+local package=""
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Load a package which is part of the ZSH configuration system
+
+Usage:
+package [options] [<package-name>]
+
+Options:
+  -e, --examine			Just return 0 if package already loaded, 1 otherwise
+				# --examine | -e
+  -h, --help			Provide this help
+				# --help | -h
+  -i, --ignore-duplicates	Do not signal an error if package is already loaded
+				# --ignore-duplicates | -i
+  -L, --long-list		Display long list of loaded packages (in order executed)
+				# --long-list | -L
+
+Arguments:
+  [<package-name>]		Optional name of package to load. If not provided then
+				list currently loaded packages instead
+				# package = [0,1] package-name : values=packages
+##excludes mutual -*
+##excludes both -h -L : package-name
+EOF
+
+if [[ -n $package ]]
+then
+  if (( opts[examine] ))
+  then
+    # Return true if package loaded
+    [[ -n $_package_loaded[(r)$package] ]]
+    return
+  else
+    local setupfile="$basedir/$package/setup"
+    
+    if [[ -z $_package_loaded[(r)$package] ]]
+    then
+      if [[ -r $setupfile ]]
+      then
+	[[ -n $ZCONFIGDEBUG ]] && echo "Loading package $package"
+	_package_loaded=($_package_loaded $package)
+    
+	# Define each package setup file into a function and call that. This gives much more
+	# meaningful output when profiled
+	local fn="_package_${package//\\//_}"
+	function $fn {
+	  . $setupfile
+	}
+	$fn
+	unfunction $fn  
+      else
+	echo "Package $package does not exist" 1>&2
+	return 1
+      fi
+    elif (( !opts[ignore-duplicates] ))
+    then
+      echo "Package $package already loaded" 1>&2
+      return 1
+    fi
+  fi
+else
+  if (( opts[long-list] ))
+  then
+    # Display long list of loaded packages (in order executed)
+    local name=""
+    for name in $_package_loaded
+    do
+      echo "package -i $name"
+    done
+  else
+    # Display list of loaded packages (sort them)
+    echo ${(F)${(o)_package_loaded}}
+  fi
+fi
+
+return 0

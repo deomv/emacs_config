@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Fetch and return the list of packages
+# For use only by the SQL packages
+#
+
+_oracle_rawsql "select object_name from ${_sql_parameters[access]:-user}_objects" \
+               "where object_type='PACKAGE'"

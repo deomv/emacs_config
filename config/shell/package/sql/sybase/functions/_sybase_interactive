@@ -1,0 +1,7 @@
+# ZSH function file
+# Part of the SQL Sybase package
+# Enter interactive SQL command line
+# For use only by the SQL packages
+#
+
+_sybase_rawsql -w ${COLUMNS:-10000}

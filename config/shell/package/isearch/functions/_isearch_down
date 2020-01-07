@@ -1,0 +1,22 @@
+# ZSH function file
+# Part of the isearch package
+# ZLE widget to search forwards through command history, or move cursor down a line
+# Can only be called from ZLE as a widgit
+#
+
+# REALLASTWIDGET is set by _completion_menu_or_down before it starts calling
+# other widgets and breaking the value of LASTWIDGET
+if [[ ${REALLASTWIDGET:-LASTWIDGET} == $_isearch_searching ]]
+then
+  _isearch_searching=$WIDGET
+  zle .history-beginning-search-forward
+else
+  if [[ $RBUFFER == *$'\n'* ]]
+  then
+    _isearch_searching=''
+    zle .down-line-or-history
+  else
+    _isearch_searching=$WIDGET
+    zle .history-beginning-search-forward
+  fi
+fi

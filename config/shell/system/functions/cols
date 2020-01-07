@@ -1,0 +1,50 @@
+#eval compdef -n _parse_opts cols
+# ZSH function file
+# Filter stdin for just the given columns
+#
+
+emulate -L zsh
+setopt extended_glob
+
+local -A opts
+local -a columns
+opts[delimiter]=$IFS
+
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Filter each line of input and return just the given columns
+
+Usage:
+cols [options] <column-number> ...
+
+Options:
+  -d, --delimiter		Field delimiter. As for IFS and defaults to whitespace
+				# --delimiter | -d : text
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <column-number> ...		The column numbers to return, where 1 is the left-most column.
+				Can use -ve numbers, eg. -1 is rightmost column
+				# columns += [1,*] column-number : integer
+EOF
+
+# Working storage
+local -a input output
+
+# Read a line from the input using given word separators. -r for raw mode
+while IFS=$opts[delimiter] read -r -A input
+do
+  output=()
+
+  # Iterate over the list of columns retrieving them as required
+  for column in $columns
+  do
+    output=($output $input[$column])
+  done
+
+  # Write new output line
+  echo $output
+done
+
+return 0

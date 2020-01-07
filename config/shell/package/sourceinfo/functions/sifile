@@ -1,0 +1,10 @@
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SourceInfo package
+# Search for files from the source info file list
+# Usage: sifile <filename-regexp>
+#
+
+[[ -z $sourceinfo_filesdb ]] && { echo "sourceinfo_filesdb not set" ; return 1 }
+
+gunzip - < $sourceinfo_filesdb | grep -i "$argv[1]"

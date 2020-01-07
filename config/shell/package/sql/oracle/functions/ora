@@ -1,0 +1,24 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Set up connection to Oracle database
+# Usage: ora <connection-info>
+#
+
+local user="$argv[1]"
+
+local server=""
+if [[ $user == *@* ]]
+then
+  server="${user##*@}"
+  user=${user%@*}
+fi
+
+local password=""
+if [[ $user == */* ]]
+then
+  password="${user##*/}"
+  user=${user%/*}
+fi
+
+sqlset vendor=oracle interface=dbi user="$user" password="$password" server="$server"
+_sql_prompt="$user${server:+@$server}"

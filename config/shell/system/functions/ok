@@ -1,0 +1,30 @@
+#eval compdef -n _parse_opts ok
+# ZSH function file
+# Return the exit status of the previous command. Also report status to stdout
+#
+
+integer ok=$?
+
+parse_opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Return the exit status of the previous command. Also report status to stdout.
+
+Usage:
+ok [options]
+
+Example:
+ok && <some-command>	        To follow on from the previously typed command
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+EOF
+
+if (( ok == 0 ))
+then
+  echo ok
+else
+  echo failed
+fi
+
+return $ok

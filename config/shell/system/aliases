@@ -1,0 +1,57 @@
+# ZSH configuration file
+# Executed for interative shells via zshrc
+# Command alias setup
+# Written by Martin Ebourne
+#
+
+alias rm='rm -i'
+alias which-command=which
+alias mv='nocorrect mv'
+alias cp='nocorrect cp'
+alias mkdir='nocorrect mkdir'
+alias tee='nocorrect tee'
+alias jobs='jobs -l'
+
+# For running faulty programs which require . on PATH. Prefix command with 'dop '
+alias dop='PATH=$PATH:.'
+
+# For editing array variables as a list
+alias vared="IFS=$'\n' vared"
+
+# Only alias more to less if less is present on the system
+[[ $(whence -p less) == /* ]] && alias more=less
+
+alias eh="emacsclient --alternate-editor='' --tty"
+
+if (( COLOUR )) && [[ $(grep --help) == *color* ]]
+then
+  alias grep='grep --color=auto'
+fi
+alias grepc='grep --color=always'
+
+# If we've got the GNU ls then enable automatic colour and a few more options, else don't
+if [[ $(ls --version 2>&1) == *(GNU|Free)* ]]
+then
+  local colour=""
+  if (( COLOUR ))
+  then
+    colour='--color=always'
+  fi
+  alias l='command ls -Fvb '$colour' ${fignore/#/--ignore=\*} ${fignore/#/--ignore=.\*}'
+  alias la='command ls -aFvb '$colour
+  alias ls='command ls -Fvb '$colour
+  alias ll='command ls -lFvbh '$colour' ${fignore/#/--ignore=\*} ${fignore/#/--ignore=.\*}'
+  alias dir='command ls -alFvbh '$colour
+else
+  alias l='command ls -F'
+  alias la='command ls -aF'
+  alias ls='command ls -F'
+  alias ll='command ls -lFb'
+  alias dir='command ls -alFb'
+fi
+
+# Disable fancy prompts so terminal output can be reused
+alias demo="ZCONFIG_DEMO=1 zsh"
+
+# Handy ps aliases
+alias psrt="ps o user,pid,tid,thcount,cls,rtprio,psr,sgi_p,stat,pcpu,pmem,tname,start_time,time,wchan:20,cmd"

@@ -1,0 +1,35 @@
+#eval compdef -n _parse_opts go
+# ZSH function file
+# Trigger a waiting shell (stopped with 'want')
+# Usage: go <identifier>
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Trigger a waiting shell (stopped with 'want')
+
+Usage:
+go [options] <semaphore>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <semaphore>			Name of semaphore to trigger
+				# semaphore : text
+EOF
+
+if [[ -z $semaphore_base ]]
+then
+  echo "ERROR: semaphore_base not defined" 1>&2
+  return 1
+fi
+
+local file="$semaphore_base$opts[semaphore]"
+
+print -P "Sent semaphore '$opts[semaphore]' at %D{%a %f %b %Y %H:%M:%S}"
+
+# 'want' will be watching for this file to appear
+touch $file

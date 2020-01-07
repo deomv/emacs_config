@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Fetch and return the list of synonyms
+# For use only by the SQL packages
+#
+
+# Never select from all_objects for this due to the vast amount of results
+_oracle_rawsql "select object_name from user_objects where object_type='SYNONYM'"

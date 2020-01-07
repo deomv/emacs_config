@@ -1,0 +1,46 @@
+#eval compdef -n _parse_opts em
+# ZSH function file
+# Send files to emacs for editing
+#
+
+local -A opts
+local -a files
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Send files to emacs for editing.
+
+Usage:
+em [options] <file> ...
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <file> ...			List of files to edit
+				# files += [*] file : file
+EOF
+
+if [[ -z $files ]]
+then
+  emacsclient --create-frame --alternate-editor '' --no-wait
+else
+  # Loop through files individually rather than sending as one block - that way
+  # they all end up at the top of the buffer stack in Emacs, not all except one
+  # being on the bottom
+  local file
+  for file in $files
+  do
+    if [[ $file != /* ]]
+    then
+      file="$PWD/$file"
+    fi
+
+    emacsclient --alternate-editor='' --no-wait $file
+  done
+fi
+
+# For now pass all in one go. Two problems with above, (i) it buggers up
+# with clearcase files, (ii) it may be responsible for 'too many client'
+# errors
+#emacsclient --no-wait $files

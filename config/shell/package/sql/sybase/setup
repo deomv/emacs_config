@@ -1,0 +1,23 @@
+# ZSH configuration file
+# Executed when the SQL Sybase package is included
+# Setup for SQL Sybase package
+# Written by Martin Ebourne
+# NB. This file should only be included by the SQL base package
+#
+
+add_functions_directory package/sql/sybase/functions
+
+_sql_functions[sybase:_desc]=_sybase__desc
+_sql_functions[sybase:desc]=_sybase_desc
+_sql_functions[sybase:fetch_columns]=_sybase_fetchcolumns
+_sql_functions[sybase:fetch_procs]=_sybase_fetchprocs
+_sql_functions[sybase:fetch_tables]=_sybase_fetchtables
+_sql_functions[sybase:fetch_types]=_sybase_fetchtypes
+_sql_functions[sybase:init]=true
+_sql_functions[sybase:interactive]=_sybase_interactive
+_sql_functions[sybase:bcp]=_sybase_bcp
+_sql_functions[sybase:execute_dbi]=_sql_execute_dbi
+_sql_functions[sybase:execute_native]=_sybase_execute
+_sql_functions[sybase:dbi_params]=_sybase_dbiparams
+
+alias desctext="format=concat quoted nocorrect noglob sql exec sp_helptext"

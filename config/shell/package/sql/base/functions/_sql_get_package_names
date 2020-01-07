@@ -1,0 +1,12 @@
+# ZSH function file
+# Part of the SQL base package
+# Retrieve the list of package names. The names are return in an array called _sql_packages.
+# Caching is handled automatically
+# For use only by the SQL packages
+#
+
+if [[ -z $_sql_packages ]]
+then
+  typeset -gHUa _sql_packages
+  _sql_packages=($(_sql_call fetch_packages))
+fi

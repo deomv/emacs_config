@@ -1,0 +1,39 @@
+#eval compdef -n _parse_opts sitype
+# ZSH function file
+# Written by Martin Ebourne
+# Part of the SourceInfo package
+# Display type information
+#
+
+local -A opts
+local -a dirs
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Display type information using the sourceinfo database.
+
+Usage:
+sitype [options] <type-name>
+
+Options:
+  -d <dir>, --directory=<dir>	Prefer files within directory if duplicates found
+				(partial name ok, searched in order given)
+				# dirs += [*] --directory | -d : ? directory
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+  -r, --recurse			Display full type information recursively
+				# --recurse | -r : constant=-r
+
+Arguments:
+  <type-name>			The type to retrieve the information for
+				# type : text
+EOF
+
+[[ -z $sourceinfo_typesdb ]] && { echo "sourceinfo_typesdb not set" ; return 1 }
+
+# If no -d options then add all the default ones instead
+if (( !$#dirs ))
+then
+  dirs=($sourceinfo_preferred_dirs)
+fi
+
+typeInfo.pl --directory=$^dirs $opts[recurse] $sourceinfo_typesdb $opts[type]

@@ -1,0 +1,38 @@
+#eval compdef -n _parse_opts add_to_hook
+# ZSH function file
+# Add command to function if not already present. Makes a function
+# usable as a hook a al emacs
+#
+
+local -A opts
+local -a command
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Add command to function if not already present. Makes a function usable as a
+hook a al emacs. If the function does not already exist then it will be
+created with 'setopt noxtrace' at the top in order to prevent the shell
+tracing the hook
+
+Usage:
+add_to_hook [options] <function-name> <command> ...
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <function-name>		The function to be edited
+				# function-name : ? function
+  <command> ...			The command words to be added
+				# command += [1,*] command : fullcommand
+EOF
+
+if [[ -z $functions[$opts[function-name]] ]]
+then
+  functions[$opts[function-name]]="setopt noxtrace
+"
+fi
+
+functions[$opts[function-name]]="${functions[$opts[function-name]]//$command[@]}
+$command[@]
+"

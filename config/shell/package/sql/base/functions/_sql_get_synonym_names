@@ -1,0 +1,12 @@
+# ZSH function file
+# Part of the SQL base package
+# Retrieve the list of synonym names. The names are return in an array called _sql_synonyms.
+# Caching is handled automatically
+# For use only by the SQL packages
+#
+
+if [[ -z $_sql_synonyms ]]
+then
+  typeset -gHUa _sql_synonyms
+  _sql_synonyms=($(_sql_call fetch_synonyms))
+fi

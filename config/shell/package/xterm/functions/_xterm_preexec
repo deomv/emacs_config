@@ -1,0 +1,10 @@
+# ZSH function file
+# Part of the xterm package
+# Hook for preexec function
+# Usage: _xterm_preexec
+#
+
+local _xterm_command="${${argv[1]}[(w)1]}"
+
+xterm_settitletext ${(%%)xterm_title}
+xterm_seticontext ${(%%)xterm_icon}

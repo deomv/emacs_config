@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the SQL base package
+# Complete on the list of stored procedure names
+# For use only by the SQL packages
+#
+
+_sql_get_proc_names
+_wanted stored-procs expl 'database stored procedures' compadd -a _sql_procs

@@ -1,0 +1,26 @@
+# ZSH function file
+# Part of the SQL Sybase package
+# Execute the given SQL command
+# For use only by the SQL packages
+#
+
+{
+  local maxrows_v=""
+  _sql_getparam maxrows_v maxrows 0
+  if (( ${maxrows_v:-0} ))
+  then
+    echo "set rowcount $maxrows_v"
+    echo "go"
+  fi
+
+  local count_v=""
+  _sql_getparam count_v count 1
+  if (( ! ${count_v:-1} ))
+  then
+    echo "set nocount on"
+    echo "go"
+  fi
+
+  echo - "$argv[*]"
+  echo "go"
+} | _sybase_rawsql -w 10000

@@ -1,0 +1,6 @@
+# ZSH function file
+# Update the prompt to display the current SQL settings
+# This function is for use by the sql/prompt code
+#
+
+_sql_prompt="$_sql_parameters[environment] $_sql_parameters[component]"

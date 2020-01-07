@@ -1,0 +1,72 @@
+# ZSH configuration file
+# Executed when the SQL base package is included
+# Setup for SQL base package
+# Written by Martin Ebourne
+#
+
+add_functions_directory package/sql/base/functions
+
+typeset -gA _sql_parameters _sql_functions
+
+# This header is to be eval'd at the start of each entry function for
+# consistent setup
+typeset -g _sql_intro='
+emulate -L zsh
+'
+
+# Setup for SQL output formatting Perl script
+typeset -g _sql_formatprogram=sqlFormat.pl
+compdef -n _parse_opts ${_sql_formatprogram:t}
+
+# Setup for SQL DBI interface Perl script
+typeset -g _sql_dbiprogram=sqlExecute.pl
+compdef -n _parse_opts ${_sql_dbiprogram:t}
+
+# Styles for completion
+zstyle ':completion:*:match:sql:*' tag-order '! table-aliases'
+
+# Bind special keys for SQL quoting
+zle -N sql_self_insert_quoted _sql_self_insert_quoted
+zle -N sql_quote_line _sql_quote_line
+bindkey "\'" sql_self_insert_quoted
+bindkey "(" sql_self_insert_quoted
+bindkey ")" sql_self_insert_quoted
+bindkey "^Xq" sql_quote_line
+
+# This is an ignored command, just used as a hint to the SQL widget functions
+alias quoted=""
+
+# These are user commands. Quoted must come first where applicable
+alias sql="quoted nocorrect noglob sql"
+alias desc="quoted nocorrect noglob desc"
+alias ssf="sql select * from"
+alias scsf='sql select count(*) \"Rows\" from'
+alias select="sql select"
+
+# Options defaults
+# count      - Print count of number of rows returned (or affected)
+# maxrows    - Maximum number of rows to return. 0 for no maximum
+# format     - Select output type for SQL formatting. Values are as listed in help
+#              for sqlFormat.pl, with the addition of:
+#	       none   - Formatting completely disabled
+# colour     - Colour displayed data based on context (default based on $COLOUR).
+#	       off    - No colour
+#	       auto   - Only colour if outputting to tty
+#	       on     - Always colour (if applicable)
+#	       NB. This parameter will only have effect if formatting is enabled
+# truncate   - Truncate columns to given number of characters. 0 for no maximum
+# access     - Level of information to access for completion
+#              user   - Only list user tables etc.
+#              all    - Include system tables etc. in lists
+# interface  - System for accessing the database
+#              native - Use database's native command line login tool
+#              dbi    - Use Perl script with DBI module
+# autocommit - Enable auto commit for DBI. Otherwise there's a single transaction
+# kerberos   - Use kerberos login instead of user/password. Only supported for
+#              sybase currently
+sqlset count=1 maxrows=0 format=squash colour=off truncate=80 access=user \
+       interface=dbi autocommit=0 kerberos=0
+if (( COLOUR ))
+then
+  sqlset colour=auto
+fi

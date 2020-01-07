@@ -1,0 +1,26 @@
+#eval compdef -n _parse_opts trimpath
+# ZSH function file
+# Remove duplicates from a standard : separated path variable
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Remove duplicates from a standard : separated path variable
+
+Usage:
+trimpath [options] <variable-name>
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <variable-name>		Path variable to update
+				# variable-name : parameter
+EOF
+
+# Zsh oddity: -U only works on special vars and on arrays. Hence the unnecessary -T
+local -UT RESULT="${(P)opts[variable-name]}" result
+
+eval $opts[variable-name]="$RESULT"

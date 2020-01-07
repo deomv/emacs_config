@@ -1,0 +1,9 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Execute an SQL command via Perl DBI
+# For use only by the SQL packages
+#
+
+_sql_execute_dbi "${(@)argv[1,-2]}" \
+                 "(alter session set nls_date_format='YYYY/MM/DD HH24:MI:SS')" \
+		 $argv[-1]

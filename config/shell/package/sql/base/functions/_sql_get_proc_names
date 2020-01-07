@@ -1,0 +1,12 @@
+# ZSH function file
+# Part of the SQL base package
+# Retrieve the list of stored procedure names. The names are return in an array called _sql_procs.
+# Caching is handled automatically
+# For use only by the SQL packages
+#
+
+if [[ -z $_sql_procs ]]
+then
+  typeset -gHUa _sql_procs
+  _sql_procs=($(_sql_call fetch_procs))
+fi

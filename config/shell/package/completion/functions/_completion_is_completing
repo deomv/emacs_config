@@ -1,0 +1,8 @@
+# ZSH function file
+# Part of the completion package
+# ZLE helper widget for use by _completion_menu_or_down
+# Can only be called from ZLE as a widgit
+#
+
+_completing=$compstate[old_list]
+compstate[old_list]=keep

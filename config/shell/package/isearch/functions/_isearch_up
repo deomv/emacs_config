@@ -1,0 +1,13 @@
+# ZSH function file
+# Part of the isearch package
+# ZLE widget to search back through command history, or move cursor up a line
+# Can only be called from ZLE as a widgit
+#
+
+if [[ $LBUFFER == *$'\n'* ]]; then
+  _isearch_searching=''
+  zle .up-line-or-history
+else
+  _isearch_searching=$WIDGET
+  zle .history-beginning-search-backward
+fi

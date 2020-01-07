@@ -1,0 +1,25 @@
+#eval compdef -n _parse_opts setenv
+# ZSH function file
+# Emulate csh setenv for use of simple csh setup files
+#
+
+local -A opts
+parse_opts - opts -- "$argv[@]" <<'EOF' || return 1
+Description:
+Emulate csh setenv for use of simple csh setup files
+
+Usage:
+setenv [options] <variable-name> [<value>]
+
+Options:
+  -h, --help			Provide this help
+				# --help | -h * excludes=*
+
+Arguments:
+  <variable-name>		Path variable to update
+				# variable-name : ? parameter
+  <value>			Value to set
+				# value
+EOF
+
+eval export $opts[variable-name]="\$opts[value]"

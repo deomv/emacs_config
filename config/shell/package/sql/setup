@@ -1,0 +1,7 @@
+# ZSH configuration file
+# Executed when the SQL package is included
+# Setup for SQL package
+# Written by Martin Ebourne
+#
+
+package sql/base

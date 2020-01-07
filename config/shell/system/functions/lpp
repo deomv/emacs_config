@@ -1,0 +1,13 @@
+#eval compdef -n _files lpp
+# ZSH function file
+# Print text files after converting to postscript
+# Usage: lpp [<file> ...]
+#
+
+if [[ $(a2ps --version 2>/dev/null) == *GNU* ]]
+then
+  #a2ps --columns=1 --font-size=8 --portrait "$argv[@]" | lp -onobanner
+  a2ps "$argv[@]" | lpr -o job-sheets=none
+else
+  a2ps -F8 -ns -p -nP -t8 "$argv[@]" | lp -onobanner
+fi

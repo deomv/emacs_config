@@ -1,0 +1,132 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Mon Apr  5 00:31:02 2010
+;; Desktop file format version 206
+;; Emacs version 23.1.1
+
+;; Global section:
+(setq kill-ring '("config/emacs/" "\n" "\n" "\n" "\n" "user/functions/" "\n" "\n" "\n" "\n"))
+(setq coding-system-history nil)
+(setq compile-command "make -k ")
+(setq command-history '((switch-to-buffer "keys.el") (dired "~/config/emacs/user/config/keys.el" "-alp") (dired "~/.emacs.el" "-alp") (dired "~/config/emacs/" "-alp") (dired "~/config/emacs/" "-alp")))
+(setq dired-regexp-history nil)
+(setq extended-command-history nil)
+(setq file-name-history '("/home/dim/config/emacs/user/config" "~/config/emacs/user/config/keys.el" "~/.emacs.el" "~/config/emacs/"))
+(setq input-method-history nil)
+(setq iswitchb-history nil)
+(setq minibuffer-history nil)
+(setq query-replace-history nil)
+(setq read-expression-history nil)
+(setq regexp-history nil)
+(setq set-variable-value-history nil)
+(setq shell-command-history nil)
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+(setq kill-ring-yank-pointer (nthcdr 0 kill-ring))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "/home/dim/config/emacs/user/config/keys.el"
+  "keys.el<2>"
+  'emacs-lisp-mode
+  '(global-auto-revert-mode)
+  3327
+  '(1146 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  "/home/dim/.emacs.el"
+  ".emacs.el<2>"
+  'emacs-lisp-mode
+  '(global-auto-revert-mode)
+  32
+  '(nil nil)
+  nil
+  nil
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  ".emacs.el"
+  'dired-mode
+  '(global-auto-revert-mode)
+  78
+  '(nil nil)
+  t
+  '("/home/dim/.emacs.el")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "keys.el"
+  'dired-mode
+  '(global-auto-revert-mode)
+  103
+  '(nil nil)
+  t
+  '("/home/dim/config/emacs/user/config/keys.el")
+  nil)
+
+(desktop-create-buffer 206
+  "/home/dim/config/emacs/startup.el"
+  "startup.el"
+  'emacs-lisp-mode
+  '(global-auto-revert-mode)
+  27
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  nil
+  "emacs"
+  'dired-mode
+  '(global-auto-revert-mode)
+  324
+  '(nil nil)
+  t
+  '("/home/dim/config/emacs/")
+  nil)
+
+(desktop-create-buffer 206
+  "/home/dim/config/emacs/user/functions/parenthesis-matching.el"
+  "parenthesis-matching.el"
+  'emacs-lisp-mode
+  '(global-auto-revert-mode)
+  1174
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+
+(desktop-create-buffer 206
+  nil
+  "functions"
+  'dired-mode
+  '(global-auto-revert-mode)
+  463
+  '(nil nil)
+  t
+  '("/home/dim/config/emacs/user/functions/")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "user"
+  'dired-mode
+  '(global-auto-revert-mode)
+  326
+  '(nil nil)
+  t
+  '("/home/dim/config/emacs/user/")
+  nil)
+

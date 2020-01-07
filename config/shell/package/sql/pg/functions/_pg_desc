@@ -1,0 +1,7 @@
+# ZSH function file
+# Part of the SQL PostgreSQL package
+# Describe the given table
+# For use only by the SQL packages
+#
+
+echo "\\d $argv[1]" | _pg_interactive

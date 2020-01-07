@@ -1,0 +1,84 @@
+;;(setq install-layout-file "~/config/emacs/layout.el")
+(setq install-base-dir "~/config/emacs")
+(setq install-user-base-dir "~/config/emacs/user")
+
+(setq load-path (cons (expand-file-name "config/emacs/3rdparty" "~") load-path))
+(load "~/config/emacs/3rdparty/undo-tree")
+(load "~/config/emacs/3rdparty/anything")
+(load "~/config/emacs/3rdparty/gtags")
+(require 'lusty-explorer)
+(require 'smooth-scrolling)
+
+;(require 'auto-complete)
+;(require 'auto-complete-extension)
+;;(require 'mc)
+
+
+;;(load "~/config/emacs/3rdparty/cedet-1.0pre7/common/cedet")
+
+;;(global-ede-mode 1)                      ; Enable the Project management system
+
+;;(add-to-list 'load-path
+;;                     "~/config/emacs/3rdparty/ecb-2.40")
+;;(require 'ecb)
+
+
+
+
+
+
+
+;;(load "~/config/emacs/3rdparty/dired+")
+(load "~/config/emacs/3rdparty/bookmark+")
+
+
+;;(load "~/config/emacs/3rdparty/anything-config.el")
+
+
+(load "~/config/emacs/user/functions/blink")
+(load "~/config/emacs/user/functions/constrain")
+(load "~/config/emacs/user/functions/fix-hist")
+;;(load "~/config/emacs/user/functions/swap-case")
+(load "~/config/emacs/user/functions/file-cache-x")
+;;(load "~/config/emacs/user/functions/copy-rectangle")
+(load "~/config/emacs/user/functions/parenthesis-matching")
+
+(load "~/config/emacs/user/config/advice")
+(load "~/config/emacs/user/config/custom")
+(load "~/config/emacs/user/config/faces")
+(load "~/config/emacs/user/config/keys")
+(load "~/config/emacs/user/config/misc")
+;;(load "~/config/emacs/user/config/server")
+(load "~/config/emacs/user/config/xwindows")
+(load "~/config/emacs/user/config/cpp")
+
+
+;;(load "~/config/emacs/user/loadfuncs/delete-indentation")
+;;(load "~/config/emacs/user/loadfuncs/find-alternate-file")
+;;(load "~/config/emacs/user/loadfuncs/yank")
+
+;;(load "~/config/emacs/user/modes/asm-mode")
+
+(load "~/config/emacs/user/modes/cc-mode")
+(load "~/config/emacs/user/modes/desktop")
+(load "~/config/emacs/user/modes/dired")
+;;(load "~/config/emacs/user/modes/emacs-lisp-mode")
+;;(load "~/config/emacs/user/modes/hs")
+;;(load "~/config/emacs/user/modes/html-mode")
+;;(load "~/config/emacs/user/modes/ishl")
+;;(load "~/config/emacs/user/modes/jde")
+;;(load "~/config/emacs/user/modes/mail-mode")
+;;(load "~/config/emacs/user/modes/sql-mode")
+
+;;(load "~/config/emacs/user/syntax/asm-mode")
+;;(load "~/config/emacs/user/syntax/cc-mode")
+;;(load "~/config/emacs/user/syntax/compile")
+;;(load "~/config/emacs/user/syntax/dired")
+;;(load "~/config/emacs/user/syntax/html-mode")
+;;(load "~/config/emacs/user/syntax/mail")
+;;(load "~/config/emacs/user/syntax/make-mode")
+;;(load "~/config/emacs/user/syntax/pcl-cvs")
+;;(load "~/config/emacs/user/syntax/sql-mode")
+
+
+

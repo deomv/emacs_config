@@ -1,0 +1,17 @@
+# ZSH function file
+# Part of the SQL Oracle package
+# Execute a raw SQL command
+# For use only by the SQL packages
+#
+
+local interface_v=""
+_sql_getparam interface_v interface native
+if [[ $interface_v == dbi ]]
+then
+  _sql_call execute_dbi --style=bcp -- "$argv[*]"
+else
+  {
+    echo "set pages 0 feed off"
+    echo - "$argv[*] ;"
+  } | _oracle_interactive -S
+fi

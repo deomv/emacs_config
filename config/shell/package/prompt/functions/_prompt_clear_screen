@@ -1,0 +1,28 @@
+# ZSH function file
+# Part of the prompt package
+# Replacement for built in clear-screen ZLE widget to redraw full prompt
+# Can only be called from ZLE as a widgit
+#
+
+# Calculate the number of rows used by the command line up to the current
+# cursor point (including left prompt). Note that the combined line is split
+# into logical rows according to any incorporated newlines, and these are
+# summed up individually
+local row="" rows=0
+for row in "${(f)${(%%)${PROMPT//[%]\{[^%]#%\}/}}}${(f)LBUFFER}"
+do
+  (( rows += 1 + $#row / COLUMNS ))
+done
+
+# Clear the screen
+echotc cl
+
+# Draw the top line prompt
+_prompt_precmd
+
+# Put the cursor on the right line so that when zsh does the re-display the cursor
+# movement is correct
+echo -n - "${${(l:rows - 1:::::)}// /$termcap[do]}"
+
+# Tell zsh to redraw the command line
+zle redisplay
